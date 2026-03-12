@@ -11,10 +11,10 @@ from anndata import AnnData
 
 try:
     import lightning.pytorch as pl
-    from lightning.pytorch.callbacks import ModelCheckpoint
+    from lightning.pytorch.callbacks import EarlyStopping, ModelCheckpoint
 except Exception:  # pragma: no cover - fallback for older installations
     import pytorch_lightning as pl
-    from pytorch_lightning.callbacks import ModelCheckpoint
+    from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
 
 from .graph import build_spatial_graph
 from .train import GraphDataModule, NAVILightningModule, make_train_config, to_device_batch
@@ -62,6 +62,7 @@ class NAVI:
         learning_rate: float = 1e-3,
         weight_decay: float = 1e-6,
         max_epochs: int = 100,
+        patience: int | None = 30,
         accelerator: str = "auto",
         devices: int | str = 1,
         seed: int = 0,
@@ -75,6 +76,7 @@ class NAVI:
         self.k_neighbors = k_neighbors
         self.use_squidpy = use_squidpy
         self.max_epochs = max_epochs
+        self.patience = patience
         self.accelerator = accelerator
         self.devices = devices
         self.seed = seed
@@ -172,6 +174,16 @@ class NAVI:
                     save_last=True,
                 )
             ]
+            if self.patience is not None:
+                callbacks.append(
+                    EarlyStopping(
+                        monitor="train_loss",
+                        patience=self.patience,
+                        min_delta=1e-4,
+                        mode="min",
+                        verbose=True,
+                    )
+                )
             trainer = pl.Trainer(
                 accelerator=self.accelerator,
                 devices=self.devices,
