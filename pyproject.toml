@@ -1,0 +1,34 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "navi"
+version = "0.1.0"
+description = "NAVI (Neighborhood-Aware Variational Inference) for multi-sample spatial transcriptomics."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+  "anndata>=0.10",
+  "lightning>=2.2",
+  "numpy>=1.24",
+  "torch>=2.2",
+  "torch-geometric>=2.5",
+]
+
+[project.optional-dependencies]
+pytorch-lightning = ["pytorch-lightning>=2.2"]
+spatial = [
+  "squidpy>=1.3",
+]
+dev = [
+  "pytest>=8.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["navi*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
